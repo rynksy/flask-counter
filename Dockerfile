@@ -5,9 +5,11 @@ WORKDIR /app
 COPY app/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app/ .
+COPY app/ ./app/
+COPY tests/ ./tests/
 
 ENV FLASK_APP=main.py
+ENV PYTHONPATH=/app
 
 EXPOSE 5000
 

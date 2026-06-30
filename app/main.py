@@ -31,6 +31,7 @@ HTML_TEMPLATE = """
 </html>
 """
 
+
 def wait_for_db(max_retries=10, delay=3):
     for i in range(max_retries):
         try:
@@ -43,6 +44,7 @@ def wait_for_db(max_retries=10, delay=3):
             time.sleep(delay)
     raise Exception("Could not connect to database after several retries")
 
+
 @app.route('/')
 def index():
     counter = Counter.get_counter()
@@ -53,6 +55,7 @@ def index():
     redis_client.set('visit_count', new_count)
 
     return render_template_string(HTML_TEMPLATE, count=new_count)
+
 
 if __name__ == '__main__':
     with app.app_context():
