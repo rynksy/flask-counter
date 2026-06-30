@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB: counterdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t myapp .
+
+      - name: Run flake8 linter
+        run: docker run --rm myapp flake8 app/
+
+      - name: Run unit tests
+        env:
+          DATABASE_URL: postgresql://postgres:secret@localhost:5432/counterdb
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: docker run --rm --network host -e DATABASE_URL -e REDIS_HOST -e REDIS_PORT myapp pytest tests/
